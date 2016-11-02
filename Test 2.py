@@ -2,12 +2,13 @@ import random
 import operator
 import time
 import sqlite3
+import sys
 
 
 con = sqlite3.connect('database.db')
 sql = con.cursor()
-#sql.execute('''create table RESULTS (name, score)''')
-#con.commit()
+sql.execute('''create table IF NOT EXISTS results (name, score)''')
+con.commit()
 
 
 def random_calc():
@@ -36,12 +37,12 @@ def askQuestion():
 
 def quiz():
     begin_test = input('Enter yes if you are ready for the test! (yes/no) ')
-    if begin_test.lower() == 'yes' or begin_test.lower() == 'y':
+    if begin_test.lower() in ['yes', 'y']:
         your_name = input("Enter your name here -> ")
         print('Welcome. This is a 10 question math quiz\n')
         begin_time = time.time()
         score = 0
-        for i in range(2):
+        for i in range(10):
             score += 1
             print("question %s/10" % (score))
             askQuestion()
@@ -51,34 +52,33 @@ def quiz():
             print("Your time : %s sec" % (round_result))
     else:
         print("\n\n\n")
-        start_results()
-    sql.execute('INSERT INTO RESULTS (name, score) VALUES("%s", "%s")' % (your_name, round_result))
+        start_menu()
+    sql.execute('INSERT INTO results (name, score) VALUES("%s", "%s")' % (your_name, round_result))
     con.commit()
 
 
 def results():
     print("####### RESULTS #######")
-    sql.execute('SELECT name, score FROM RESULTS ORDER BY score')
+    sql.execute('SELECT name, score FROM results ORDER BY score')
     while True:
-        row = sql.fetchone()
-        if row:
+        rows = sql.fetchall()
+        for row in rows:
             print('Name : {} | Score : {}'.format(row[0], row[1]))
 
 
-def start_results():
+def start_menu():
     print("1 - start new test")
     print("2 - show results")
+    print("3 - exit!")
     choise = input("Enter your choise here -> ")
     if choise == "1":
         quiz()
     elif choise == "2":
         results()
+    elif choise == "3":
+        sys.exit
     else:
         print("Wrong choice\n\n\n\n")
-        start_results()
-start_results()
-
-
-
-
+        start_menu()
+start_menu()
 
